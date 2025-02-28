@@ -1,51 +1,84 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import VideoInput from "./components/VideoInput";
 import CaptionInput from "./components/CaptionInput";
 import VideoPlayer from "./components/VideoPlayer";
+import Swal from 'sweetalert2';
+import { useSnackbar } from 'notistack';
+
+const STORAGE_KEYS = {
+  CAPTIONS: "videoCaptions",
+  VIDEO_URL: "videoURL"
+};
 
 const App = () => {
-  const [videoURL, setVideoURL] = useState("");
-  const [captions, setCaptions] = useState([]);
+  const { enqueueSnackbar } = useSnackbar();
 
-  // Load captions from localStorage on initial render
-  useEffect(() => {
-    const savedCaptions = localStorage.getItem("videoCaptions");
-    if (savedCaptions) {
-      setCaptions(JSON.parse(savedCaptions));
+  // Initialize state from localStorage
+  const [videoURL, setVideoURL] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.VIDEO_URL) || "";
+    } catch (error) {
+      console.error("Error loading video URL from localStorage:", error);
+      return "";
     }
-    const savedVideoURL = localStorage.getItem("videoURL");
-    if (savedVideoURL) {
-      setVideoURL(savedVideoURL);
+  });
+
+  const [captions, setCaptions] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CAPTIONS);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error loading captions from localStorage:", error);
+      return [];
     }
-  }, []);
+  });
 
-  // Save captions to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("videoCaptions", JSON.stringify(captions));
-  }, [captions]);
-
-  // Save video URL to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("videoURL", videoURL);
-  }, [videoURL]);
+  // Persist data to localStorage
+  const persistData = useCallback((key, value) => {
+    try {
+      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+    } catch (error) {
+      console.error(`Error saving to localStorage (${key}):`, error);
+      enqueueSnackbar(`Error saving data: ${error.message}`, { variant: "error" });
+    }
+  }, [enqueueSnackbar]);
 
   const handleVideoURLChange = (url) => {
     setVideoURL(url);
+    persistData(STORAGE_KEYS.VIDEO_URL, url);
   };
 
   const handleAddCaption = (caption) => {
-    setCaptions([...captions, caption]);
+    const newCaptions = [...captions, caption];
+    setCaptions(newCaptions);
+    persistData(STORAGE_KEYS.CAPTIONS, newCaptions);
   };
 
-  const handleDeleteCaption = (index) => {
-    const newCaptions = captions.filter((_, i) => i !== index);
-    setCaptions(newCaptions);
+  const handleDeleteCaption = async (index) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      const newCaptions = captions.filter((_, i) => i !== index);
+      setCaptions(newCaptions);
+      persistData(STORAGE_KEYS.CAPTIONS, newCaptions);
+      enqueueSnackbar("Caption deleted successfully", { variant: "success" });
+    }
   };
 
   const handleEditCaption = (index, updatedCaption) => {
     const newCaptions = [...captions];
     newCaptions[index] = updatedCaption;
     setCaptions(newCaptions);
+    persistData(STORAGE_KEYS.CAPTIONS, newCaptions);
+    enqueueSnackbar("Caption updated successfully", { variant: "success" });
   };
 
   return (

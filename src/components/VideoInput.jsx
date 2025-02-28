@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useSnackbar } from 'notistack';
 
 const VideoInput = ({ onVideoURLChange }) => {
   const [videoURL, setVideoURL] = useState("");
   const [isValidURL, setIsValidURL] = useState(true);
+  const { enqueueSnackbar } = useSnackbar();
 
   const validateURL = (url) => {
     try {
@@ -19,8 +21,12 @@ const VideoInput = ({ onVideoURLChange }) => {
       onVideoURLChange(videoURL);
       setVideoURL("");
       setIsValidURL(true);
+      enqueueSnackbar("watch video", { variant: 'success' });
+
     } else {
       setIsValidURL(false);
+      enqueueSnackbar("Please enter the valid url", { variant: 'error' });
+
     }
   };
 

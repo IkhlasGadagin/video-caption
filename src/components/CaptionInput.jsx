@@ -1,17 +1,21 @@
 import { useState } from "react";
+import { useSnackbar } from 'notistack';
 
 const CaptionInput = ({ onAddCaption }) => {
   const [text, setText] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [error, setError] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const validateInputs = () => {
     if (!text.trim()) {
       setError("Caption text is required");
+      enqueueSnackbar("Caption text is required", { variant: 'error' });
       return false;
     }
     if (!timestamp) {
       setError("Timestamp is required");
+      enqueueSnackbar("Timestamp is required", { variant: 'error' });
       return false;
     }
     if (isNaN(timestamp) || parseFloat(timestamp) < 0) {
@@ -29,6 +33,7 @@ const CaptionInput = ({ onAddCaption }) => {
       onAddCaption({ text: text.trim(), timestamp: parseFloat(timestamp) });
       setText("");
       setTimestamp("");
+      enqueueSnackbar("Caption added successfully", { variant: 'success' });
     }
   };
 
