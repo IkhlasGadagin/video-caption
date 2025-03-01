@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSnackbar } from 'notistack';
+import { getToken } from '../Services/Services/LocalStorageServices';
 
 const CaptionInput = ({ onAddCaption }) => {
   const [text, setText] = useState("");
   const [timestamp, setTimestamp] = useState("");
   const [error, setError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const { access_token } = getToken();
+      setIsAuthenticated(!!access_token);
+    };
+
+    checkAuth();
+    // Add event listener for storage changes
+    window.addEventListener('storage', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
 
   const validateInputs = () => {
     if (!text.trim()) {
@@ -29,6 +46,12 @@ const CaptionInput = ({ onAddCaption }) => {
     e.preventDefault();
     setError("");
     
+    if (!isAuthenticated) {
+      setError("Please login to add captions");
+      enqueueSnackbar("Please login to add captions", { variant: 'error' });
+      return;
+    }
+
     if (validateInputs()) {
       onAddCaption({ text: text.trim(), timestamp: parseFloat(timestamp) });
       setText("");

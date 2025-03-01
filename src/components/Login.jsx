@@ -1,27 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { Modal, Button, TextInput, PasswordInput, Stack } from '@mantine/core';
 import '@mantine/core/styles.css';
 import axios from "axios";
 import { useSnackbar } from "notistack";
+import { storeToken, getToken, removeToken } from '../Services/Services/LocalStorageServices';
 
 function Login() {
   const [opened, { open, close }] = useDisclosure(false);
   const { enqueueSnackbar } = useSnackbar();
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     username: '',
   });
 
+  useEffect(() => {
+    const { access_token } = getToken();
+    if (access_token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const response = await axios.post('/api/v1/user/login', formData);
-      console.log(response.data);
-      
       if (response.status === 200) {
+        // Store token with the correct structure
+        storeToken({
+          generatedaccessToken: response.data.message,
+          generatedrefreshToken: response.data.message,
+          user: JSON.stringify(response.data)
+        });
+        
         setFormData({
           email: '',
           password: '',
@@ -29,6 +42,10 @@ function Login() {
         });
         close();
         enqueueSnackbar(response.data.data, { variant: "success" });
+        setIsLoggedIn(true);
+        
+        // Trigger storage event for other components
+        window.dispatchEvent(new Event('storage'));
       }
     } catch (error) {
       if (error.response) {
@@ -37,6 +54,27 @@ function Login() {
         } else {
           enqueueSnackbar(error.response.statusText, { variant: "error" });
         }
+      } else {
+        enqueueSnackbar('An error occurred', { variant: "error" });
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post('/api/v1/user/logout');
+      if (response.status === 200) {
+        removeToken();
+        localStorage.removeItem('user');
+        enqueueSnackbar(response.data.data, { variant: "success" });
+        setIsLoggedIn(false);
+        
+        // Trigger storage event for other components
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch (error) {
+      if (error.response) {
+        enqueueSnackbar(error.response.statusText, { variant: "error" });
       } else {
         enqueueSnackbar('An error occurred', { variant: "error" });
       }
@@ -52,43 +90,51 @@ function Login() {
 
   return (
     <>
-      <Modal opened={opened} onClose={close} title="Login" centered size="md">
-        <form onSubmit={handleSubmit}>
-          <Stack spacing="md">
-            <TextInput
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Username"
-              required
-            />
-            <TextInput
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="your@email.com"
-              required
-            />
-            <PasswordInput
-              label="Password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Your password"
-              required
-            />
-            <Button type="submit" fullWidth>
-              Login
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+      {isLoggedIn ? (
+        <Button variant="subtle" onClick={handleLogout} className="text-gray-400 hover:text-blue-400">
+          Logout
+        </Button>
+      ) : (
+        <>
+          <Modal opened={opened} onClose={close} title="Login" centered size="md">
+            <form onSubmit={handleSubmit}>
+              <Stack spacing="md">
+                <TextInput
+                  label="Username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Username"
+                  required
+                />
+                <TextInput
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="your@email.com"
+                  required
+                />
+                <PasswordInput
+                  label="Password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Your password"
+                  required
+                />
+                <Button type="submit" fullWidth>
+                  Login
+                </Button>
+              </Stack>
+            </form>
+          </Modal>
 
-      <Button variant="subtle" onClick={open} className="text-gray-400 hover:text-blue-400">
-        Login
-      </Button>
+          <Button variant="subtle" onClick={open} className="text-gray-400 hover:text-blue-400">
+            Login
+          </Button>
+        </>
+      )}
     </>
   );
 }
