@@ -4,6 +4,10 @@ import CaptionInput from "./components/CaptionInput";
 import VideoPlayer from "./components/VideoPlayer";
 import Swal from 'sweetalert2';
 import { useSnackbar } from 'notistack';
+// import logo from "../../../src/assets/Spyne+Logo+black.webp";
+import logo from "../src/assets/colored-white-logo-1.png";
+import Register from "./components/Register";
+import Login from "./components/Login";
 
 const STORAGE_KEYS = {
   CAPTIONS: "videoCaptions",
@@ -89,20 +93,20 @@ const App = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex items-center">
-                <span className="text-blue-500 text-3xl">🎬</span>
-                <h1 className="text-3xl font-bold text-white tracking-tight ml-2">
-                  <span className="text-blue-400">Caption</span>
-                  <span className="text-white">Studio</span>
+                <img src={logo} alt="Logo" className="w-[102px] h-[40px] space-y-4 ml-2" />
+                <h1 className="text-2xl font-bold text-white tracking-tight ml-2">
+                 
+                  <span className="text-gray-400">Studio</span>
                 </h1>
               </div>
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-black-500/10 text-gray-400 border border-blue-500/20">
                 Pro
               </span>
             </div>
             <div className="hidden md:flex space-x-6 text-gray-400">
               <span className="hover:text-blue-400 cursor-pointer transition-colors">Features</span>
-              <span className="hover:text-blue-400 cursor-pointer transition-colors">Tutorial</span>
-              <span className="hover:text-blue-400 cursor-pointer transition-colors">Support</span>
+              <span className="hover:text-blue-400 cursor-pointer transition-colors"><Login /></span>
+              <span className="hover:text-blue-400 cursor-pointer transition-colors"><Register /></span>
             </div>
           </div>
         </div>
