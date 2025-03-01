@@ -1,29 +1,45 @@
-import { useState } from 'react';
-import { useDisclosure } from '@mantine/hooks';
-import { Modal, Button, TextInput, PasswordInput, Stack } from '@mantine/core';
-import '@mantine/core/styles.css';
+import { useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { Modal, Button, TextInput, PasswordInput, FileInput, Image, Stack } from "@mantine/core";
+import "@mantine/core/styles.css";
+import axios from "axios";
+import { useSnackbar } from "notistack";
 
 function Register() {
   const [opened, { open, close }] = useDisclosure(false);
+  const { enqueueSnackbar } = useSnackbar();
+
   const [formData, setFormData] = useState({
-    email: '',
-    fullName: '',
-    password: '',
+    email: "",
+    fullName: "",
+    password: "",
+    username: "",
+    avatar: null,
+    coverImage: null,
+    avatarPreview: null,
+    coverImagePreview: null,
   });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
+    const data = new FormData();
+
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] instanceof File) {
+        data.append(key, formData[key]);
+      } else if (key !== "avatarPreview" && key !== "coverImagePreview") {
+        data.append(key, formData[key]);
+      }
     });
-    if (response.ok) {
+
+    try {
+      const response = await axios.post("/api/v1/user/register", data);
+      console.log(response);
+      enqueueSnackbar("User registered successfully", { variant: "success" });
       close();
-    } else {
-      console.error('Error registering user:', response.statusText);
+    } catch (error) {
+      console.error("Error registering user:", error);
+      enqueueSnackbar("Error registering user", { variant: "error" });
     }
   };
 
@@ -34,35 +50,32 @@ function Register() {
     });
   };
 
+  const handleImageChange = (file, name) => {
+    if (file) {
+      setFormData({
+        ...formData,
+        [name]: file,
+        [`${name}Preview`]: URL.createObjectURL(file),
+      });
+    }
+  };
+
   return (
     <>
       <Modal opened={opened} onClose={close} title="Register" centered size="md">
         <form onSubmit={handleSubmit}>
           <Stack spacing="md">
-            <TextInput
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="your@email.com"
-              required
-            />
-            <TextInput
-              label="Full Name"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="John Doe"
-              required
-            />
-            <PasswordInput
-              label="Password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Your password"
-              required
-            />
+            <TextInput label="Email" name="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" required />
+            <TextInput label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Full Name" required />
+            <TextInput label="Username" name="username" value={formData.username} onChange={handleChange} placeholder="Username" required />
+            <PasswordInput label="Password" name="password" value={formData.password} onChange={handleChange} placeholder="Your password" required />
+
+            <FileInput label="Avatar" accept=".png,.jpeg,.jpg" onChange={(file) => handleImageChange(file, "avatar")} required />
+            {formData.avatarPreview && <Image src={formData.avatarPreview} alt="Avatar" className="w-full h-48 object-cover rounded-md" />}
+
+            <FileInput label="Cover Image" accept=".png,.jpeg,.jpg" onChange={(file) => handleImageChange(file, "coverImage")} required />
+            {formData.coverImagePreview && <Image src={formData.coverImagePreview} alt="Cover Image" className="w-full h-48 object-cover rounded-md" />}
+
             <Button type="submit" fullWidth>
               Register
             </Button>
@@ -78,3 +91,135 @@ function Register() {
 }
 
 export default Register;
+
+// import { useState } from 'react';
+// import { useDisclosure } from '@mantine/hooks';
+// import { Modal, Button, TextInput, PasswordInput, FileInput, Image, Stack } from '@mantine/core';
+// import '@mantine/core/styles.css';
+// import axios from 'axios';
+// import { useSnackbar } from 'notistack';
+
+
+// function Register() {
+//   const [opened, { open, close }] = useDisclosure(false);
+//   const { enqueueSnackbar } = useSnackbar();
+
+//   const [formData, setFormData] = useState({
+//     email: '',
+//     fullName: '',
+//     password: '',
+//     username: '',
+//     avatar: null,
+//     coverImage: null,
+//   });
+
+//   const handleSubmit = async (event) => {
+//     event.preventDefault();
+//     const data = new FormData(event.target);
+//     try {
+//       const response = await axios.post('/api/v1/user/register', data);
+//       console.log(response);
+//       enqueueSnackbar("User registered successfully", { variant: 'success' });
+//       close();
+//     } catch (error) {
+//       console.error('Error registering user:', error);
+//       enqueueSnackbar("Error registering user", { variant: 'error' });
+//     }
+//   };
+
+//   const handleChange = (event) => {
+//     setFormData({
+//       ...formData,
+//       [event.target.name]: event.target.value,
+//     });
+//   };
+
+//   const handleImageChange = (event) => {
+//     setFormData({
+//       ...formData,
+//       [event.target.name]: event.target.files[0],
+//     });
+//   };
+
+//   return (
+//     <>
+//       <Modal opened={opened} onClose={close} title="Register" centered size="md">
+//         <form onSubmit={handleSubmit}>
+//           <Stack spacing="md">
+//             <TextInput
+//               label="Email"
+//               name="email"
+//               value={formData.email}
+//               onChange={handleChange}
+//               placeholder="your@email.com"
+//               required
+//             />
+//             <TextInput
+//               label="Full Name"
+//               name="fullName"
+//               value={formData.fullName}
+//               onChange={handleChange}
+//               placeholder="Full Name"
+//               required
+//             />
+//             <TextInput
+//               label="Username"
+//               name="username"
+//               value={formData.username}
+//               onChange={handleChange}
+//               placeholder="Username"
+//               required
+//             />
+//             <PasswordInput
+//               label="Password"
+//               name="password"
+//               value={formData.password}
+//               onChange={handleChange}
+//               placeholder="Your password"
+//               required
+//             />
+//             <FileInput
+//               label="Avatar"
+//               name="avatar"
+//               accept=".png,.jpeg,.jpg"
+//               value={formData.avatar}
+//               onChange={handleImageChange}
+//               required
+//             />
+//             {formData.avatar && (
+//               <Image
+//                 src={URL.createObjectURL(formData.avatar)}
+//                 alt="Avatar"
+//                 className="w-full h-48 object-cover rounded-md"
+//               />
+//             )}
+//             <FileInput
+//               label="Cover Image"
+//               name="coverImage"
+//               accept=".png,.jpeg,.jpg"
+//               value={formData.coverImage}
+//               onChange={handleImageChange}
+//               required
+//             />
+//             {formData.coverImage && (
+//               <Image
+//                 src={URL.createObjectURL(formData.coverImage)}
+//                 alt="Cover Image"
+//                 className="w-full h-48 object-cover rounded-md"
+//               />
+//             )}
+//             <Button type="submit" fullWidth>
+//               Register
+//             </Button>
+//           </Stack>
+//         </form>
+//       </Modal>
+
+//       <Button variant="subtle" onClick={open} className="text-gray-400 hover:text-blue-400">
+//         Register
+//       </Button>
+//     </>
+//   );
+// }
+
+// export default Register;

@@ -2,27 +2,44 @@ import { useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { Modal, Button, TextInput, PasswordInput, Stack } from '@mantine/core';
 import '@mantine/core/styles.css';
+import axios from "axios";
+import { useSnackbar } from "notistack";
 
 function Login() {
   const [opened, { open, close }] = useDisclosure(false);
+  const { enqueueSnackbar } = useSnackbar();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    username: '',
   });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response.ok) {
-      close();
-    } else {
-      console.error('Error logging in:', response.statusText);
+    try {
+      const response = await axios.post('/api/v1/user/login', formData);
+      console.log(response.data);
+      
+      if (response.status === 200) {
+        setFormData({
+          email: '',
+          password: '',
+          username: '',
+        });
+        close();
+        enqueueSnackbar(response.data.data, { variant: "success" });
+      }
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 404) {
+          enqueueSnackbar('Please Register First', { variant: "error" });
+        } else {
+          enqueueSnackbar(error.response.statusText, { variant: "error" });
+        }
+      } else {
+        enqueueSnackbar('An error occurred', { variant: "error" });
+      }
     }
   };
 
@@ -38,6 +55,14 @@ function Login() {
       <Modal opened={opened} onClose={close} title="Login" centered size="md">
         <form onSubmit={handleSubmit}>
           <Stack spacing="md">
+            <TextInput
+              label="Username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Username"
+              required
+            />
             <TextInput
               label="Email"
               name="email"
