@@ -131,7 +131,7 @@ const App = () => {
               </span>
             </div>
             <div className="hidden md:flex space-x-6 text-gray-400">
-              <span className="hover:text-blue-400 cursor-pointer transition-colors">Features</span>
+              {/* <span className="hover:text-blue-400 cursor-pointer transition-colors">Features</span> */}
               <span className="hover:text-blue-400 cursor-pointer transition-colors"><Login /></span>
               <span className="hover:text-blue-400 cursor-pointer transition-colors"><Register /></span>
             </div>
