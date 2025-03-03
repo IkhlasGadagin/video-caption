@@ -30,11 +30,11 @@ function Login() {
       if (response.status === 200) {
         // Store token with the correct structure
         storeToken({
-          generatedaccessToken: response.data.message,
-          generatedrefreshToken: response.data.message,
+          generatedaccessToken: JSON.stringify(response.data.message),
+          generatedrefreshToken: JSON.stringify(response.data.message),
           user: JSON.stringify(response.data)
         });
-        
+
         setFormData({
           email: '',
           password: '',
@@ -43,7 +43,7 @@ function Login() {
         close();
         enqueueSnackbar(response.data.data, { variant: "success" });
         setIsLoggedIn(true);
-        
+
         // Trigger storage event for other components
         window.dispatchEvent(new Event('storage'));
       }
@@ -68,7 +68,7 @@ function Login() {
         localStorage.removeItem('user');
         enqueueSnackbar(response.data.data, { variant: "success" });
         setIsLoggedIn(false);
-        
+
         // Trigger storage event for other components
         window.dispatchEvent(new Event('storage'));
       }
