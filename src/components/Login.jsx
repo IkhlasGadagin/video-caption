@@ -26,7 +26,7 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post('/api/v1/user/login', formData);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/login`, formData);
       if (response.status === 200) {
         // Store token with the correct structure
         storeToken({

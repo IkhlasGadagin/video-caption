@@ -16,7 +16,8 @@ const STORAGE_KEYS = {
 
 const App = () => {
   const { enqueueSnackbar } = useSnackbar();
-
+  console.log(import.meta.env.VITE_BACKEND_APP_URL);
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {

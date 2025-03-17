@@ -36,7 +36,7 @@ function Register() {
     });
 
     try {
-      const response = await axios.post("/api/v1/user/register", data);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/register`, data);
       console.log(response);
       enqueueSnackbar("User registered successfully", { variant: "success" });
       close();
