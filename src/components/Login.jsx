@@ -63,6 +63,7 @@ function Login() {
 
   const handleLogout = async () => {
     try {
+      setLoading(true);
       const response = await axios.post('/api/v1/user/logout');
       if (response.status === 200) {
         removeToken();
@@ -79,6 +80,8 @@ function Login() {
       } else {
         enqueueSnackbar('An error occurred', { variant: "error" });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
