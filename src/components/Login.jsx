@@ -15,6 +15,7 @@ function Login() {
     password: '',
     username: '',
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const { access_token } = getToken();
@@ -92,7 +93,7 @@ function Login() {
     <>
       {isLoggedIn ? (
         <Button variant="subtle" onClick={handleLogout} className="text-gray-400 hover:text-blue-400">
-          Logout
+          {loading ? "Loading..." : "Logout"}
         </Button>
       ) : (
         <>
