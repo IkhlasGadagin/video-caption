@@ -8,6 +8,7 @@ import { storeToken, getToken, removeToken } from '../Services/Services/LocalSto
 import { useAuth0 } from "@auth0/auth0-react";
 
 function Login() {
+  const { access_token} = getToken();
   const [opened, { open, close }] = useDisclosure(false);
   const { enqueueSnackbar } = useSnackbar();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,14 +18,43 @@ function Login() {
     username: '',
   });
   const [loading, setLoading] = useState(false);
-  const { loginWithRedirect, isAuthenticated, user, logout } = useAuth0();
+  const { loginWithRedirect, isAuthenticated, user, logout, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
-    const { access_token } = getToken();
     if (access_token) {
       setIsLoggedIn(true);
     }
   }, []);
+
+  useEffect(() => {
+    const getUserData = async () => {
+      if (isAuthenticated) {
+        const accessToken = await getAccessTokenSilently();
+        console.log(accessToken,user);
+        
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/auth0`, user, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        console.log(response);
+        
+        if (response.status === 200) {
+          storeToken({
+            generatedaccessToken: JSON.stringify(response.data.message.generatedaccessToken),
+            generatedrefreshToken: JSON.stringify(response.data.message.generatedrefreshToken),
+            user: JSON.stringify(response.data),
+          });
+
+          setIsLoggedIn(true);
+
+          // Trigger storage event for other components
+          window.dispatchEvent(new Event('storage'));
+        }
+      }
+    };
+    getUserData();
+  }, [isAuthenticated, user]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,9 +63,9 @@ function Login() {
       if (response.status === 200) {
         // Store token with the correct structure
         storeToken({
-          generatedaccessToken: JSON.stringify(response.data.message),
-          generatedrefreshToken: JSON.stringify(response.data.message),
-          user: JSON.stringify(response.data)
+          generatedaccessToken: JSON.stringify(response.data.message.generatedaccessToken),
+          generatedrefreshToken: JSON.stringify(response.data.message.generatedrefreshToken),
+          user: JSON.stringify(response.data),
         });
 
         setFormData({
@@ -66,7 +96,11 @@ function Login() {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/v1/user/logout');
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
       if (response.status === 200) {
         removeToken();
         localStorage.removeItem('user');
@@ -93,7 +127,6 @@ function Login() {
       [event.target.name]: event.target.value,
     });
   };
-console.log(isAuthenticated, user);
 
   return (
     <>
