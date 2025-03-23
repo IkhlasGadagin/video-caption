@@ -5,6 +5,7 @@ import '@mantine/core/styles.css';
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { storeToken, getToken, removeToken } from '../Services/Services/LocalStorageServices';
+import { useAuth0 } from "@auth0/auth0-react";
 
 function Login() {
   const [opened, { open, close }] = useDisclosure(false);
@@ -16,6 +17,7 @@ function Login() {
     username: '',
   });
   const [loading, setLoading] = useState(false);
+  const { loginWithRedirect, isAuthenticated, user, logout } = useAuth0();
 
   useEffect(() => {
     const { access_token } = getToken();
@@ -91,15 +93,35 @@ function Login() {
       [event.target.name]: event.target.value,
     });
   };
+console.log(isAuthenticated, user);
 
   return (
     <>
-      {isLoggedIn ? (
-        <Button variant="subtle" onClick={handleLogout} className="text-gray-400 hover:text-blue-400">
-          {loading ? "Loading..." : "Logout"}
-        </Button>
+      {isLoggedIn || isAuthenticated ? (
+        <div className="flex gap-2">
+          {isAuthenticated && <span>Welcome, {user?.name}</span>}
+          <Button 
+            variant="subtle" 
+            onClick={isAuthenticated ? () => logout() : handleLogout} 
+            className="text-gray-400 hover:text-blue-400"
+          >
+            {loading ? "Loading..." : "Logout"}
+          </Button>
+        </div>
       ) : (
         <>
+          <div className="flex gap-2">
+            <Button variant="subtle" onClick={open} className="text-gray-400 hover:text-blue-400">
+              Login
+            </Button>
+            <Button 
+              variant="subtle" 
+              onClick={() => loginWithRedirect()} 
+              className="text-gray-400 hover:text-blue-400"
+            >
+              Login with Auth0
+            </Button>
+          </div>
           <Modal opened={opened} onClose={close} title="Login" centered size="md">
             <form onSubmit={handleSubmit}>
               <Stack spacing="md">
@@ -133,10 +155,6 @@ function Login() {
               </Stack>
             </form>
           </Modal>
-
-          <Button variant="subtle" onClick={open} className="text-gray-400 hover:text-blue-400">
-            Login
-          </Button>
         </>
       )}
     </>
