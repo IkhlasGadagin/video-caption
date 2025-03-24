@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
           domain="dev-74ceq0ug4guzottn.us.auth0.com"
           clientId="g2iyqpRtD3AvnPYvs3e0774RXNBX8UZ6"
           authorizationParams={{
-            redirect_uri: window.location.origin
+            redirect_uri: process.env.REDIRECT_URI || "https://video-caption-backend.onrender.com/api/v1/user/callback"
           }}
         >
           <App />
