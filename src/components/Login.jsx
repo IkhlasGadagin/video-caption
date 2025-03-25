@@ -96,11 +96,13 @@ function Login() {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`, {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      });
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`
+        // , {
+        // headers: {
+        //   Authorization: `Bearer ${access_token}`,
+        // },
+      // }
+    );
       if (response.status === 200) {
         removeToken();
         localStorage.removeItem('user');
