@@ -93,48 +93,89 @@ function Login() {
     }
   };
 
+  // const handleLogout = async () => {
+  //   console.log(access_token,"access_token");
+  //   try {
+  //     if (!access_token) {
+  //       enqueueSnackbar("User is not authenticated", { variant: "warning" });
+  //       return;
+  //     }
+  
+  //     setLoading(true);
+  //     console.log( `${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`);
+      
+  //     const response = await axios.post(
+  //       `${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${access_token}`,
+  //         },
+  //         // withCredentials: true, // Important for cookies-based authentication
+  //       }
+  //     );
+  //     console.log(response,"response of logout");
+      
+  //     if (response.status === 200) {
+  //       // Clear token and user data locally
+  //       removeToken();
+  //       localStorage.removeItem("user");
+  //       enqueueSnackbar(response.data.data || "Logged out successfully", { variant: "success" });
+  //       setIsLoggedIn(false);
+  
+  //       // Notify other components about the logout
+  //       window.dispatchEvent(new Event("storage"));
+  //     }
+  //   } catch (error) {
+  //     enqueueSnackbar(
+  //       error.response?.data?.message || error.response?.statusText || "An error occurred",
+  //       { variant: "error" }
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  
   const handleLogout = async () => {
-    console.log(access_token,"access_token");
+    console.log("Access Token in Frontend:", access_token); // Debugging
+  
+    if (!access_token) {
+      enqueueSnackbar("User is not authenticated", { variant: "warning" });
+      return;
+    }
+  
+    setLoading(true);
+  
     try {
-      if (!access_token) {
-        enqueueSnackbar("User is not authenticated", { variant: "warning" });
-        return;
-      }
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: JSON.stringify({ accessToken: access_token }),
+      });
   
-      setLoading(true);
-  
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_APP_URL}/user/logout`,
-        {}
-        , // No body needed for logout
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        }
-      );
+      console.log("Logout Response:", response);
   
       if (response.status === 200) {
-        // Clear token and user data locally
         removeToken();
         localStorage.removeItem("user");
-        enqueueSnackbar(response.data.data || "Logged out successfully", { variant: "success" });
+        enqueueSnackbar("Logged out successfully", { variant: "success" });
         setIsLoggedIn(false);
-  
-        // Notify other components about the logout
         window.dispatchEvent(new Event("storage"));
+      } else {
+        const errorData = await response.json();
+        enqueueSnackbar(errorData.message || "Logout failed", { variant: "error" });
       }
     } catch (error) {
-      enqueueSnackbar(
-        error.response?.data?.message || error.response?.statusText || "An error occurred",
-        { variant: "error" }
-      );
+      console.log("Logout Error:", error);
+      enqueueSnackbar("An error occurred", { variant: "error" });
     } finally {
       setLoading(false);
     }
   };
   
-
   const handleChange = (event) => {
     setFormData({
       ...formData,
